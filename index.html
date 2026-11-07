@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="WoW Forever dungeon guide with quests by faction, minimum levels, and blue drops by boss.">
+<title>Forever Dungeon Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Layout: a field-guide app. A dungeon list sits on the left; the chosen dungeon fills the right with Quests and Blue Drops tabs. Items are drawn as in-game tooltips, dark in both themes. */
+:root {
+  --bg: #eef0ec;
+  --surface: #fbfcfa;
+  --raise: #e2e6df;
+  --line: #d3d8cf;
+  --fg: #20261f;
+  --muted: #5a6457;
+  --accent: #9c2424;
+  --accent-soft: #f4dfdc;
+  --ally: #1f4f96;
+  --ally-soft: #dde7f5;
+  --att: #6a3fa0;
+  --ok: #24663f;
+  --ok-soft: #d9ecdf;
+  --warn: #8a5a00;
+  --warn-soft: #f6e8c8;
+  --tip-bg: #0e1524;
+  --tip-line: #46536e;
+  --tip-fg: #eceff5;
+  --tip-muted: #a9b4c8;
+  --tip-rare: #4ba3ff;
+  --tip-boe: #ffd479;
+  --display: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+  --body: "Source Sans 3", "Segoe UI", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #171b18; --surface: #20261f; --raise: #2b322a; --line: #384036; --fg: #e8ece5; --muted: #a2ad9e;
+    --accent: #ef8a7f; --accent-soft: #4a2522; --ally: #8ab4f0; --ally-soft: #1f2f48; --att: #c9a8f2;
+    --ok: #7fd3a0; --ok-soft: #1f3f2c; --warn: #eec16a; --warn-soft: #463715; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #171b18; --surface: #20261f; --raise: #2b322a; --line: #384036; --fg: #e8ece5; --muted: #a2ad9e;
+  --accent: #ef8a7f; --accent-soft: #4a2522; --ally: #8ab4f0; --ally-soft: #1f2f48; --att: #c9a8f2;
+  --ok: #7fd3a0; --ok-soft: #1f3f2c; --warn: #eec16a; --warn-soft: #463715; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.45 var(--body); margin: 0; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+a { color: var(--accent); }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+input, select, button { font: inherit; color: var(--fg); }
+input[type=number], input[type=search], select { padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); min-width: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Top bar */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+.top-in { max-width: 1280px; margin: 0 auto; padding-block: 8px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; }
+.brand { font: 700 1.5rem/1.1 var(--display); color: var(--fg); text-decoration: none; white-space: nowrap; }
+.nav { display: flex; gap: 2px; }
+.nav a { padding: 5px 10px; border-radius: 6px; font-weight: 600; color: var(--muted); text-decoration: none; white-space: nowrap; }
+.nav a:hover { background: var(--raise); }
+.nav a[aria-current=page] { background: var(--raise); color: var(--fg); }
+.me { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.field { display: flex; align-items: center; gap: 8px; font-weight: 600; min-width: 0; }
+#lvl { width: 4.5em; }
+.seg { display: inline-flex; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; min-width: 0; }
+.seg legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.seg label { position: relative; cursor: pointer; }
+.seg input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.seg span { display: block; padding: 5px 11px; font-weight: 600; background: var(--bg); }
+.seg label + label span { border-left: 1px solid var(--line); }
+.seg input:checked + span { background: var(--fg); color: var(--surface); }
+.seg input[value=h]:checked + span { background: var(--accent); color: var(--surface); }
+.seg input[value=a]:checked + span { background: var(--ally); color: var(--surface); }
+.seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* Shell */
+.shell { max-width: 1280px; margin: 0 auto; padding-block: 18px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 28px; align-items: start; }
+.shell.wide { grid-template-columns: minmax(0, 1fr); }
+.shell.wide aside { display: none; }
+aside { position: sticky; top: 66px; max-height: calc(100dvh - 78px); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+#q { width: 100%; }
+.check { display: flex; align-items: center; gap: 6px; font-size: .94rem; }
+#dlist { overflow-y: auto; min-height: 0; padding-right: 4px; }
+.bracket { font: 700 1rem/1.2 var(--display); color: var(--muted); letter-spacing: .03em; margin: 12px 0 2px; }
+.bracket:first-child { margin-top: 0; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 10px; padding: 6px 9px; border-radius: 6px; color: var(--fg); text-decoration: none; }
+.row:hover { background: var(--raise); }
+.row[aria-current=page] { background: var(--fg); color: var(--surface); }
+.row b { font: 600 1.14rem/1.2 var(--display); min-width: 0; }
+.row i { font: 700 1.05rem/1.2 var(--display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.row small { grid-column: 1 / -1; color: var(--muted); font-size: .84rem; }
+.row[aria-current=page] small { color: inherit; opacity: .8; }
+.row.inr b::after { content: "●"; font-size: .62em; vertical-align: 3px; margin-left: 6px; color: var(--ok); }
+.nomatch { color: var(--muted); padding: 8px; }
+
+/* Dungeon view */
+main { min-width: 0; display: grid; gap: 14px; }
+.back { display: none; font-weight: 600; text-decoration: none; }
+.dhead { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 14px; }
+.dhead h1 { font-size: 2.5rem; line-height: 1.05; }
+.dhead .range { font: 700 2.1rem/1.1 var(--display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dhead .sub { grid-column: 1 / -1; color: var(--muted); }
+.tag { display: inline-block; font: 600 .74rem/1.5 var(--body); letter-spacing: .04em; text-transform: uppercase; padding: 0 6px; border-radius: 4px; vertical-align: middle; margin-left: 4px; }
+.tag.new { background: var(--accent-soft); color: var(--accent); }
+.tag.trek, .tag.dis, .tag.st-classic, .tag.st-beta { background: var(--warn-soft); color: var(--warn); }
+.tag.here, .tag.st-forever { background: var(--ok-soft); color: var(--ok); }
+.tag.class { background: var(--bg); color: var(--muted); border: 1px solid var(--line); text-transform: none; letter-spacing: 0; }
+.tag.dis { text-transform: none; letter-spacing: 0; }
+.tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--line); }
+.tabs a { padding: 6px 14px; margin-bottom: -2px; font: 600 1.2rem/1.2 var(--display); color: var(--muted); text-decoration: none; border-bottom: 2px solid transparent; white-space: nowrap; }
+.tabs a[aria-current=page] { color: var(--fg); border-bottom-color: var(--fg); }
+.tabs a small { font: 400 .88rem/1 var(--body); font-variant-numeric: tabular-nums; margin-left: 3px; }
+.note { margin: 0; color: var(--muted); max-width: 72ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+
+/* Quests */
+.kinds { display: flex; flex-wrap: wrap; gap: 3px 14px; font-size: .88rem; color: var(--muted); }
+.fh { display: flex; justify-content: space-between; gap: 12px; padding: 5px 14px; font: 700 1.05rem/1.25 var(--display); }
+.panel > .fh:not(:first-child) { border-top: 1px solid var(--line); }
+.fh small { font: 400 .88rem/1.4 var(--body); font-variant-numeric: tabular-nums; }
+.fh.h { background: var(--accent-soft); color: var(--accent); }
+.fh.a { background: var(--ally-soft); color: var(--ally); }
+.fh.b { background: var(--raise); color: var(--muted); }
+.quests { list-style: none; margin: 0; padding: 0; }
+.quests li { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); gap: 10px; padding: 8px 14px; border-top: 1px solid var(--line); align-items: baseline; }
+.quests li.later, .tip.later { opacity: .5; }
+.min { font: 700 1.1rem/1.2 var(--display); font-variant-numeric: tabular-nums; text-align: right; }
+.min.unk { color: var(--muted); }
+.qn { font-weight: 600; }
+.qs { color: var(--muted); font-size: .92rem; }
+.kind { font-size: .92rem; font-weight: 600; white-space: nowrap; color: var(--muted); }
+.kind.dungeon { color: var(--ok); }
+.kind.attunement { color: var(--att); }
+.kind.prequest { color: var(--warn); }
+.none { padding: 8px 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: .94rem; }
+.panel > .none:first-child { border-top: 0; }
+
+/* Loot */
+.lootbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.lootbar .sum { color: var(--muted); }
+.boss { display: grid; gap: 8px; }
+.boss h3 { font-size: 1.35rem; line-height: 1.15; display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; }
+.boss h3 .n { font-variant-numeric: tabular-nums; color: var(--muted); }
+.boss h3 small { font: 400 .92rem/1.2 var(--body); color: var(--muted); }
+.tips { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 8px; align-items: start; }
+.tip { background: var(--tip-bg); color: var(--tip-fg); border: 1px solid var(--tip-line); border-radius: 5px; padding: 8px 11px; font-size: .92rem; line-height: 1.32; min-width: 0; box-shadow: inset 0 0 0 1px #00000066; }
+.iname { display: block; color: var(--tip-rare); font-size: 1.04rem; font-weight: 700; line-height: 1.22; text-decoration: none; }
+a.iname:hover { text-decoration: underline; }
+a.iname:focus-visible { outline-color: var(--tip-rare); }
+.ibind { color: var(--tip-fg); }
+.ibind.boe { color: var(--tip-boe); }
+.islot { display: flex; justify-content: space-between; gap: 12px; }
+.imuted { color: var(--tip-muted); }
+.srcline { color: var(--muted); font-size: .9rem; }
+.empty { padding: 18px; color: var(--muted); }
+.empty h3 { font-size: 1.3rem; color: var(--fg); margin-bottom: 4px; }
+
+/* Loot finder */
+.page-head { display: grid; gap: 4px; }
+.page-head h1 { font-size: 2.5rem; line-height: 1.05; }
+.page-head p { margin: 0; color: var(--muted); max-width: 66ch; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+#fq { width: 16em; max-width: 100%; }
+.frows { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+th { text-align: left; font: 700 .98rem/1.2 var(--display); color: var(--muted); padding: 8px 12px; white-space: nowrap; }
+td { padding: 7px 12px; border-top: 1px solid var(--line); vertical-align: baseline; }
+td.num { font-variant-numeric: tabular-nums; text-align: right; }
+th.num { text-align: right; }
+td a.it { font-weight: 700; color: var(--ally); text-decoration: none; }
+td a.it:hover, td a.dg:hover { text-decoration: underline; }
+td a.dg { color: var(--fg); text-decoration: none; }
+td small { display: block; color: var(--muted); }
+.more { padding: 10px 14px; border-top: 1px solid var(--line); text-align: center; }
+.more button { padding: 6px 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--raise); font-weight: 600; cursor: pointer; }
+
+/* About */
+.prose { max-width: 70ch; display: grid; gap: 14px; }
+.prose h2 { font-size: 1.5rem; }
+.prose ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; }
+
+@media (max-width: 860px) {
+  .top { position: static; }
+  .me { margin-left: 0; }
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  aside { position: static; max-height: none; }
+  #dlist { overflow: visible; padding-right: 0; }
+  .shell.detail aside { display: none; }
+  .shell.list main { display: none; }
+  .back { display: inline-block; }
+  .dhead h1, .page-head h1 { font-size: 2rem; }
+  .dhead .range { font-size: 1.7rem; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="#ragefire-chasm">Forever Dungeon Guide</a>
+    <nav class="nav" aria-label="Main">
+      <a id="nav-d" href="#ragefire-chasm">Dungeons</a>
+      <a id="nav-f" href="#loot-finder">Loot Finder</a>
+      <a id="nav-a" href="#about">About</a>
+    </nav>
+    <div class="me">
+      <fieldset class="seg">
+        <legend>Faction</legend>
+        <label><input type="radio" name="fac" value="all" checked><span>All</span></label>
+        <label><input type="radio" name="fac" value="h"><span>Horde</span></label>
+        <label><input type="radio" name="fac" value="a"><span>Alliance</span></label>
+      </fieldset>
+      <label class="field" for="lvl">Your level <input id="lvl" type="number" min="1" max="60" inputmode="numeric" placeholder="1–60"></label>
+    </div>
+  </div>
+</header>
+
+<div class="shell" id="shell">
+  <aside aria-label="Dungeons">
+    <input id="q" type="search" placeholder="Search dungeon, quest or item" aria-label="Search dungeons, quests and items">
+    <label class="check" for="only"><input id="only" type="checkbox"> Only dungeons in my range</label>
+    <div id="dlist"></div>
+  </aside>
+  <main id="main"></main>
+</div>
+
+<script src="guide-data.js"></script>
+<script src="guide-loot.js"></script>
+<script>
+var D = window.D, LOOT = window.LOOT || {};
+var BR = [[13,19],[20,29],[30,39],[40,49],[50,60]];
+var F = [["h","Horde"],["a","Alliance"],["b","Both factions"]];
+var STATUS = {
+  forever: ["Forever data", "From WoW Forever launch data."],
+  beta: ["Beta data", "From the WoW Forever beta or previews, so it may have changed at launch."],
+  classic: ["Classic data", "No Forever list exists yet, so this is the Classic loot table. Forever may differ."]
+};
+var $ = function(id){ return document.getElementById(id); };
+var shell = $("shell"), main = $("main"), dlist = $("dlist"), lvlIn = $("lvl"), qIn = $("q"), only = $("only");
+var facIns = document.querySelectorAll("input[name=fac]");
+var bindF = "all", route = {}, finder = { q:"", slot:"", type:"", bind:"all", fit:false, limit:150 };
+
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function slug(n){ return n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); }
+function faction(){ var v="all"; facIns.forEach(function(i){ if(i.checked) v=i.value; }); return v; }
+function level(){ var L=parseInt(lvlIn.value,10); return L>=1&&L<=60 ? L : 0; }
+function search(){ return qIn.value.trim().toLowerCase(); }
+function shownF(fac){ return F.filter(function(f){ return fac==="all"||f[0]==="b"||f[0]===fac; }); }
+function allQuests(d, fac){ var r=[]; shownF(fac).forEach(function(f){ r=r.concat(d[f[0]]||[]); }); return r; }
+function hasQ(x, s){ return (x[1]+" "+x[6]).toLowerCase().indexOf(s)>=0; }
+function hasI(it, s){ return [it.name,it.slot,it.type,it.stats,it.boss].join(" ").toLowerCase().indexOf(s)>=0; }
+function plural(n, w){ return n+" "+w+(n===1?"":"s"); }
+
+/* Flatten loot once, so counts and the finder share one list. */
+var ITEMS = [];
+D.forEach(function(d){
+  d.slug = slug(d.n); d.items = [];
+  var l = LOOT[d.n]; if(!l) return;
+  (l.bosses||[]).forEach(function(b){ (b.items||[]).forEach(function(it){
+    var o = Object.assign({}, it, { boss:b.name, wing:b.wing, d:d }); d.items.push(o); ITEMS.push(o);
+  }); });
+  (l.boe||[]).forEach(function(it){
+    var o = Object.assign({}, it, { boss:it.from||"Trash", trash:1, d:d }); d.items.push(o); ITEMS.push(o);
+  });
+});
+
+function itemCard(it, L){
+  var later = L && it.req && it.req>L;
+  var name = it.id
+    ? '<a class="iname" href="https://www.wowhead.com/forever/item='+Number(it.id)+'" target="_blank" rel="noopener">'+esc(it.name)+'</a>'
+    : '<span class="iname">'+esc(it.name)+'</span>';
+  var bind = it.bind==="BoP" ? '<div class="ibind">Binds when picked up</div>' : it.bind==="BoE" ? '<div class="ibind boe">Binds when equipped</div>' : '';
+  var slot = (it.slot||it.type) ? '<div class="islot"><span>'+esc(it.slot||"")+'</span><span>'+esc(it.type||"")+'</span></div>' : '';
+  return '<article class="tip'+(later?' later':'')+'">'+name+bind+slot+
+    (it.stats?'<div>'+esc(it.stats)+'</div>':'')+
+    (it.req?'<div>Requires Level '+Number(it.req)+'</div>':'')+
+    (it.trash&&it.from?'<div class="imuted">From '+esc(it.from)+'</div>':'')+
+    (it.chance?'<div class="imuted">'+esc(it.chance)+' drop chance</div>':'')+
+    '</article>';
+}
+function questRow(x, L){
+  var min=x[0], name=x[1], giver=x[2], where=x[3], cls=x[4], dis=x[5], kind=x[6];
+  var src=[giver,where].filter(Boolean).join(" · ") || "Start point not published";
+  var later = L && min!==null && min>L;
+  return '<li'+(later?' class="later"':'')+'><span class="min'+(min===null?' unk':'')+'">'+(min===null?'?':min)+'</span>'+
+    '<span><span class="qn">'+esc(name)+'</span>'+
+    (kind?' <span class="kind '+kind.split(/[ ,-]/)[0].toLowerCase()+'">('+esc(kind)+')</span>':'')+
+    (cls?' <span class="tag class">'+esc(cls)+'</span>':'')+
+    (dis?' <span class="tag dis">Disputed</span>':'')+
+    '<br><span class="qs">'+esc(src)+'</span></span></li>';
+}
+
+/* Sidebar */
+function matches(d, s, fac){
+  if(!s || d.n.toLowerCase().indexOf(s)>=0) return true;
+  return allQuests(d,fac).some(function(x){ return hasQ(x,s); }) || d.items.some(function(it){ return hasI(it,s); });
+}
+function renderList(){
+  var L=level(), s=search(), fac=faction(), html="";
+  var shown=D.filter(function(d){
+    if(only.checked && L && !(d.lo<=L&&L<=d.hi)) return false;
+    return matches(d,s,fac);
+  });
+  BR.forEach(function(b){
+    var g=shown.filter(function(d){ return d.lo>=b[0]&&d.lo<=b[1]; });
+    if(!g.length) return;
+    html+='<div class="bracket">Levels '+b[0]+'–'+b[1]+'</div>';
+    g.forEach(function(d){
+      var cur=route.d===d, inr=L&&d.lo<=L&&L<=d.hi;
+      html+='<a class="row'+(inr?' inr':'')+'" href="#'+d.slug+(route.tab==="loot"?'-loot':'')+'"'+(cur?' aria-current="page"':'')+'><b>'+esc(d.n)+'</b><i>'+d.lo+'–'+d.hi+'</i>'+
+        '<small>'+plural(allQuests(d,fac).length,"quest")+' · '+plural(d.items.length,"blue")+(d.isNew?' · New':'')+'</small></a>';
+    });
+  });
+  dlist.innerHTML=html||'<p class="nomatch">No dungeons match. Clear the search or untick the range filter.</p>';
+}
+
+/* Dungeon view */
+function questsTab(d, L, s, fac){
+  if(d.none) return '<div class="panel"><div class="none">'+esc(d.none)+'</div></div>';
+  var nameHit = s && d.n.toLowerCase().indexOf(s)>=0, body="";
+  shownF(fac).forEach(function(f){
+    var qs=d[f[0]]||[];
+    if(s&&!nameHit) qs=qs.filter(function(x){ return hasQ(x,s); });
+    if(!qs.length){
+      if(f[0]!=="b"&&!(s&&!nameHit)) body+='<div class="fh '+f[0]+'">'+f[1]+'</div><div class="none">No '+f[1]+' quests listed.</div>';
+      return;
+    }
+    qs=qs.slice().sort(function(a,b){ return (a[0]===null?99:a[0])-(b[0]===null?99:b[0]); });
+    body+='<div class="fh '+f[0]+'">'+f[1]+'<small>'+plural(qs.length,"quest")+'</small></div><ul class="quests">'+qs.map(function(x){ return questRow(x,L); }).join('')+'</ul>';
+  });
+  return '<div class="kinds">'+
+    '<span><span class="kind dungeon">(Dungeon)</span> done inside</span>'+
+    '<span><span class="kind attunement">(Attunement)</span> gives entry, a key or an unlock</span>'+
+    '<span><span class="kind prequest">(Prequest)</span> done first</span>'+
+    '<span><span class="kind">(Follow-up)</span> errand or turn-in after</span>'+
+    '<span><span class="kind">(Outside)</span> done nearby</span></div>'+
+    '<div class="panel">'+(body||'<div class="none">No quests match your search.</div>')+'</div>';
+}
+function lootTab(d, L, s){
+  var l=LOOT[d.n];
+  if(!l) return '<div class="panel empty"><h3>Loot is still being researched</h3>This dungeon\'s blue drops haven\'t been added yet.</div>';
+  if(l.status==="none-found"||(!d.items.length)) return '<div class="panel empty"><h3>No reliable loot list yet</h3>'+esc(l.note||"No source lists this dungeon's blue drops yet.")+sources(l)+'</div>';
+  var nameHit = s && d.n.toLowerCase().indexOf(s)>=0;
+  function keep(it){ return (bindF==="all"||it.bind===bindF)&&(!s||nameHit||hasI(it,s)); }
+  var bop=d.items.filter(function(i){return i.bind==="BoP";}).length, boe=d.items.filter(function(i){return i.bind==="BoE";}).length;
+  var st=STATUS[l.status]||["",""];
+  var bar='<div class="lootbar"><fieldset class="seg"><legend>Bind type</legend>'+
+    [["all","All"],["BoP","BoP"],["BoE","BoE"]].map(function(o){
+      return '<label><input type="radio" name="bindf" value="'+o[0]+'"'+(bindF===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>';
+    }).join('')+'</fieldset><span class="sum">'+plural(d.items.length,"blue")+' · '+bop+' BoP · '+boe+' BoE</span>'+
+    (st[0]?'<span class="tag st-'+esc(l.status)+'">'+st[0]+'</span>':'')+'</div>'+
+    (l.status!=="forever"?'<p class="note">'+st[1]+'</p>':'')+
+    (l.note?'<p class="note">'+esc(l.note)+'</p>':'');
+  var body="", n=0, any=false;
+  (l.bosses||[]).forEach(function(b){
+    n++;
+    var its=d.items.filter(function(i){ return !i.trash&&i.boss===b.name&&i.wing===b.wing&&keep(i); });
+    if(!its.length && (s||bindF!=="all"||(b.items||[]).length)) return;
+    any=any||its.length>0;
+    body+='<section class="boss"><h3><span class="n">'+n+'</span>'+esc(b.name)+
+      (b.wing?'<small>'+esc(b.wing)+'</small>':'')+(b.rare?'<small>Rare spawn</small>':'')+'</h3>'+
+      (its.length?'<div class="tips">'+its.map(function(i){ return itemCard(i,L); }).join('')+'</div>':'<p class="note">No blue drops listed.</p>')+'</section>';
+  });
+  var tr=d.items.filter(function(i){ return i.trash&&keep(i); });
+  if(tr.length){ any=true; body+='<section class="boss"><h3>Trash and any mob</h3><div class="tips">'+tr.map(function(i){ return itemCard(i,L); }).join('')+'</div></section>'; }
+  return bar+(any?body:'<p class="note">No items match these filters.</p>')+sources(l);
+}
+function sources(l){
+  if(!l.sources||!l.sources.length) return '';
+  return '<p class="srcline">Sources: '+l.sources.map(function(u){
+    var h=String(u).replace(/^https?:\/\/(www\.)?/,"").split("/")[0];
+    return /^https?:/.test(u)?'<a href="'+esc(u)+'" target="_blank" rel="noopener">'+esc(h)+'</a>':'';
+  }).filter(Boolean).join(', ')+'</p>';
+}
+function renderDungeon(){
+  var d=route.d, L=level(), s=search(), fac=faction(), loot=route.tab==="loot";
+  var inr=L&&d.lo<=L&&L<=d.hi;
+  var tags=(d.isNew?'<span class="tag new">New</span>':'')+(d.trek&&fac!=="a"?'<span class="tag trek">Long trip</span>':'')+(inr?'<span class="tag here">Your range</span>':'');
+  main.innerHTML='<a class="back" href="#dungeons">All dungeons</a>'+
+    '<div class="dhead"><h1>'+esc(d.n)+' '+tags+'</h1><span class="range">'+d.lo+'–'+d.hi+'</span>'+
+    '<div class="sub">'+esc(d.at)+(d.prev?' · Preview levels '+esc(d.prev):'')+(d.wings?'<br>'+esc(d.wings):'')+'</div></div>'+
+    '<nav class="tabs" aria-label="'+esc(d.n)+'">'+
+    '<a href="#'+d.slug+'"'+(loot?'':' aria-current="page"')+'>Quests <small>'+allQuests(d,fac).length+'</small></a>'+
+    '<a href="#'+d.slug+'-loot"'+(loot?' aria-current="page"':'')+'>Blue Drops <small>'+d.items.length+'</small></a></nav>'+
+    (d.note&&!loot?'<p class="note">'+esc(d.note)+'</p>':'')+
+    (loot?lootTab(d,L,s):questsTab(d,L,s,fac));
+}
+main.addEventListener("change", function(e){
+  if(e.target.name==="bindf"){ bindF=e.target.value; renderDungeon(); }
+});
+
+/* Loot finder */
+function uniq(k){
+  var o={}; ITEMS.forEach(function(i){ if(i[k]) o[i[k]]=1; });
+  return Object.keys(o).sort();
+}
+function opts(list, cur, all){
+  return '<option value="">'+all+'</option>'+list.map(function(v){ return '<option value="'+esc(v)+'"'+(v===cur?' selected':'')+'>'+esc(v)+'</option>'; }).join('');
+}
+function renderFinder(){
+  main.innerHTML='<div class="page-head"><h1>Loot Finder</h1><p>Search every blue drop by slot, armor type or stat. Use your level to hide what you can\'t wear yet.</p></div>'+
+    '<div class="filters">'+
+    '<input id="fq" type="search" placeholder="Item, stat or boss" aria-label="Search items" value="'+esc(finder.q)+'">'+
+    '<select id="fslot" aria-label="Slot">'+opts(uniq("slot"),finder.slot,"Any slot")+'</select>'+
+    '<select id="ftype" aria-label="Type">'+opts(uniq("type"),finder.type,"Any type")+'</select>'+
+    '<fieldset class="seg"><legend>Bind type</legend>'+[["all","All"],["BoP","BoP"],["BoE","BoE"]].map(function(o){
+      return '<label><input type="radio" name="fbind" value="'+o[0]+'"'+(finder.bind===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>';
+    }).join('')+'</fieldset>'+
+    '<label class="check" for="ffit"><input id="ffit" type="checkbox"'+(finder.fit?' checked':'')+'> Usable at my level</label></div>'+
+    '<div class="panel" id="fres"></div>';
+  $("fq").addEventListener("input",function(e){ finder.q=e.target.value; finder.limit=150; renderResults(); });
+  $("fslot").addEventListener("change",function(e){ finder.slot=e.target.value; finder.limit=150; renderResults(); });
+  $("ftype").addEventListener("change",function(e){ finder.type=e.target.value; finder.limit=150; renderResults(); });
+  $("ffit").addEventListener("change",function(e){ finder.fit=e.target.checked; finder.limit=150; renderResults(); });
+  document.querySelectorAll("input[name=fbind]").forEach(function(i){ i.addEventListener("change",function(){ finder.bind=i.value; finder.limit=150; renderResults(); }); });
+  renderResults();
+}
+function renderResults(){
+  var box=$("fres"); if(!box) return;
+  if(!ITEMS.length){ box.innerHTML='<div class="empty"><h3>Loot is still being researched</h3>Blue drops will appear here once they are added.</div>'; return; }
+  var s=finder.q.trim().toLowerCase(), L=level();
+  var r=ITEMS.filter(function(i){
+    if(finder.slot&&i.slot!==finder.slot) return false;
+    if(finder.type&&i.type!==finder.type) return false;
+    if(finder.bind!=="all"&&i.bind!==finder.bind) return false;
+    if(finder.fit&&L&&i.req&&i.req>L) return false;
+    if(s&&(hasI(i,s)||i.d.n.toLowerCase().indexOf(s)>=0)===false) return false;
+    return true;
+  }).sort(function(a,b){ return (a.req||a.d.lo)-(b.req||b.d.lo)||a.name.localeCompare(b.name); });
+  if(!r.length){ box.innerHTML='<div class="empty">No items match. Remove a filter to see more.</div>'; return; }
+  var rows=r.slice(0,finder.limit).map(function(i){
+    return '<tr><td><a class="it" href="#'+i.d.slug+'-loot">'+esc(i.name)+'</a>'+(i.stats?'<small>'+esc(i.stats)+'</small>':'')+'</td>'+
+      '<td>'+esc(i.slot||"")+'<small>'+esc(i.type||"")+'</small></td>'+
+      '<td class="num">'+(i.req||"")+'</td><td>'+esc(i.bind||"")+'</td>'+
+      '<td><a class="dg" href="#'+i.d.slug+'-loot">'+esc(i.d.n)+'</a><small>'+esc(i.boss)+'</small></td></tr>';
+  }).join('');
+  box.innerHTML='<div class="frows"><table><thead><tr><th>'+plural(r.length,"item")+'</th><th>Slot</th><th class="num">Req</th><th>Bind</th><th>Where</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    (r.length>finder.limit?'<div class="more"><button type="button" id="fmore">Show more</button></div>':'');
+  var m=$("fmore"); if(m) m.addEventListener("click",function(){ finder.limit+=300; renderResults(); });
+}
+
+/* About */
+function renderAbout(){
+  main.innerHTML='<div class="prose"><div class="page-head"><h1>About this guide</h1><p>A WoW Forever dungeon guide: level ranges, quests by faction and blue drops by boss.</p></div>'+
+  '<section><h2>How reliable this is</h2><ul>'+
+  '<li>Nothing here was checked in game. Quests and loot come from third-party guides, and several were written during the beta or from Classic data.</li>'+
+  '<li>Every dungeon\'s Blue Drops tab says whether its list is Forever, beta or Classic data.</li>'+
+  '<li>Factions follow Warcraft Tavern\'s quest pages unless a dungeon\'s note says otherwise. "Both factions" means neutral quests that either side can take.</li>'+
+  '<li>Quest labels are based on each quest\'s objective. Many Dungeon quests still start or end in a city, so check the line under the quest name.</li>'+
+  '<li>Minimum level is the level you can accept a quest, which is lower than the quest\'s own level.</li>'+
+  '<li>Dungeon levels are Warcraft Tavern\'s, which it says match the in-game group finder. Preview levels are the tighter ranges from the September dungeon list.</li>'+
+  '<li>Krol\'dok Stronghold, Alcaz Prison, Blackmaw Hold and Shaper\'s Terrace weren\'t in the beta, so no reliable quest lists exist for them yet.</li>'+
+  '</ul></section><section><h2>Quest sources</h2><ul>'+
+  [["https://www.warcrafttavern.com/forever/guides/dungeons/","Warcraft Tavern: dungeons and quest guides"],
+   ["https://www.zockify.com/forever/dungeons/","Zockify: Forever dungeons"],
+   ["https://wowhandbook.com/zones/dungeons/","WoW Handbook: dungeons"],
+   ["https://www.method.gg/wow-forever/dungeons/hall-of-thanes","Method: Hall of Thanes"],
+   ["https://gamer-guides.com/warcraft-forever/hall-of-thanes-quests/","Gamer Guides: Hall of Thanes quests"],
+   ["https://mmonster.co/wow-forever/guides/dungeons/city-of-dalaran","mmonster: City of Dalaran"],
+   ["https://conquestcapped.com/guides/wow-forever/wow-forever-dalaran-attunement/","Conquest Capped: Dalaran attunement"],
+   ["https://warcraft.wiki.gg/wiki/Stone_Tokens","Warcraft Wiki: quest pages"],
+   ["https://expcarry.com/wow-forever-dungeon-quests","ExpCarry: dungeon quests"]].map(function(x){
+     return '<li><a href="'+x[0]+'" target="_blank" rel="noopener">'+esc(x[1])+'</a></li>';
+   }).join('')+
+  '</ul></section><section><h2>Loot sources</h2><p class="note">Each dungeon lists its own loot sources at the bottom of its Blue Drops tab.</p></section>'+
+  '<section><h2>Fan project</h2><p class="note">This is an unofficial fan guide. It is not made by or affiliated with Blizzard Entertainment. World of Warcraft is a trademark of Blizzard Entertainment.</p></section></div>';
+}
+
+/* Routing: #slug, #slug-loot, #dungeons (phone list), #loot-finder, #about */
+function readRoute(){
+  var h=location.hash.slice(1), r={ view:"dungeon" };
+  if(h==="loot-finder"){ r.view="finder"; }
+  else if(h==="about"){ r.view="about"; }
+  else if(h==="dungeons"){ r.view="dungeon"; r.list=true; r.d=D[0]; r.tab="quests"; }
+  else {
+    var d=null, tab="quests";
+    D.forEach(function(x){ if(x.slug===h){ d=x; } else if(x.slug+"-loot"===h){ d=x; tab="loot"; } });
+    r.d=d||D[0]; r.tab=tab; r.list=!d;
+  }
+  return r;
+}
+function renderMain(){
+  if(route.view==="finder") renderFinder();
+  else if(route.view==="about") renderAbout();
+  else renderDungeon();
+}
+function go(){
+  route=readRoute();
+  shell.className="shell "+(route.view==="dungeon"?(route.list?"list":"detail"):"wide");
+  [["nav-d","dungeon"],["nav-f","finder"],["nav-a","about"]].forEach(function(n){
+    if(route.view===n[1]) $(n[0]).setAttribute("aria-current","page"); else $(n[0]).removeAttribute("aria-current");
+  });
+  renderList(); renderMain();
+  window.scrollTo(0,0);
+}
+function refresh(){
+  renderList();
+  if(route.view==="finder") renderResults(); else renderMain();
+  try{ localStorage.setItem("hdq-level",lvlIn.value); localStorage.setItem("hdq-faction",faction()); }catch(e){}
+}
+try{
+  var savedL=localStorage.getItem("hdq-level"); if(savedL) lvlIn.value=savedL;
+  var savedF=localStorage.getItem("hdq-faction");
+  if(savedF) facIns.forEach(function(i){ i.checked=i.value===savedF; });
+}catch(e){}
+lvlIn.addEventListener("input",refresh); qIn.addEventListener("input",refresh); only.addEventListener("change",refresh);
+facIns.forEach(function(i){ i.addEventListener("change",refresh); });
+window.addEventListener("hashchange",go);
+go();
+</script>
+</body>
+</html>
