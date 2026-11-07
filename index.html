@@ -7,7 +7,7 @@
 <title>Forever Dungeon Guide</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Grenze:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
 <style>
 /* Layout: a field-guide app. A dungeon list sits on the left; the chosen dungeon fills the right with Quests and Blue Drops tabs. Items are drawn as in-game tooltips, dark in both themes. */
 :root {
@@ -32,7 +32,13 @@
   --tip-muted: #a9b4c8;
   --tip-rare: #4ba3ff;
   --tip-boe: #ffd479;
-  --display: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+  --tip-eff: #8ce06e;
+  --tip-bad: #ff7a6b;
+  --tip-edge: #5b6b8c;
+  --tip-bevel: #2a3550;
+  --tip-glass: #ffffff14;
+  --display: "Grenze", Georgia, serif;
+  --num: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
   --body: "Source Sans 3", "Segoe UI", Arial, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
@@ -49,7 +55,7 @@
 }
 * { box-sizing: border-box; }
 body { background: var(--bg); color: var(--fg); font: 400 16px/1.45 var(--body); margin: 0; }
-body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--tip-bg); }
 a { color: var(--accent); }
 h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
 input, select, button { font: inherit; color: var(--fg); }
@@ -57,15 +63,18 @@ input[type=number], input[type=search], select { padding: 6px 8px; border: 1px s
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Top bar */
-.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--tip-bg); border-bottom: 1px solid var(--tip-line); }
 .top-in { max-width: 1280px; margin: 0 auto; padding-block: 8px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; }
-.brand { font: 700 1.5rem/1.1 var(--display); color: var(--fg); text-decoration: none; white-space: nowrap; }
+.brand { font: 700 1.5rem/1.1 var(--display); color: var(--tip-fg); text-decoration: none; white-space: nowrap; }
 .nav { display: flex; gap: 2px; }
-.nav a { padding: 5px 10px; border-radius: 6px; font-weight: 600; color: var(--muted); text-decoration: none; white-space: nowrap; }
-.nav a:hover { background: var(--raise); }
-.nav a[aria-current=page] { background: var(--raise); color: var(--fg); }
+.nav a { padding: 5px 10px; border-radius: 6px; font-weight: 600; color: var(--tip-muted); text-decoration: none; white-space: nowrap; }
+.nav a:hover, .nav a[aria-current=page] { background: var(--tip-glass); color: var(--tip-fg); }
 .me { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
 .field { display: flex; align-items: center; gap: 8px; font-weight: 600; min-width: 0; }
+.top .field { color: var(--tip-fg); }
+.top input[type=number] { background: var(--tip-glass); color: var(--tip-fg); border-color: var(--tip-line); color-scheme: dark; }
+.top input::placeholder { color: var(--tip-muted); }
+.top :focus-visible { outline-color: var(--tip-fg); }
 #lvl { width: 4.5em; }
 .seg { display: inline-flex; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; min-width: 0; }
 .seg legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
@@ -74,8 +83,12 @@ input[type=number], input[type=search], select { padding: 6px 8px; border: 1px s
 .seg span { display: block; padding: 5px 11px; font-weight: 600; background: var(--bg); }
 .seg label + label span { border-left: 1px solid var(--line); }
 .seg input:checked + span { background: var(--fg); color: var(--surface); }
-.seg input[value=h]:checked + span { background: var(--accent); color: var(--surface); }
-.seg input[value=a]:checked + span { background: var(--ally); color: var(--surface); }
+.top .seg { border-color: var(--tip-line); }
+.top .seg span { background: var(--tip-glass); color: var(--tip-fg); }
+.top .seg label + label span { border-left-color: var(--tip-line); }
+.top .seg input:checked + span { background: var(--tip-fg); color: var(--tip-bg); }
+.top .seg input[value=h]:checked + span, .seg input[value=h]:checked + span { background: var(--accent); color: var(--surface); }
+.top .seg input[value=a]:checked + span, .seg input[value=a]:checked + span { background: var(--ally); color: var(--surface); }
 .seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -2px; }
 
 /* Shell */
@@ -85,16 +98,16 @@ input[type=number], input[type=search], select { padding: 6px 8px; border: 1px s
 aside { position: sticky; top: 66px; max-height: calc(100dvh - 78px); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 #q { width: 100%; }
 .check { display: flex; align-items: center; gap: 6px; font-size: .94rem; }
-#dlist { overflow-y: auto; min-height: 0; padding-right: 4px; }
+#dlist { overflow-y: auto; min-height: 0; padding-right: 4px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
 .bracket { font: 700 1rem/1.2 var(--display); color: var(--muted); letter-spacing: .03em; margin: 12px 0 2px; }
 .bracket:first-child { margin-top: 0; }
 .row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 10px; padding: 6px 9px; border-radius: 6px; color: var(--fg); text-decoration: none; }
 .row:hover { background: var(--raise); }
-.row[aria-current=page] { background: var(--fg); color: var(--surface); }
+.row[aria-current=page] { background: var(--tip-bg); color: var(--tip-fg); box-shadow: inset 0 0 0 1px var(--tip-line); }
 .row b { font: 600 1.14rem/1.2 var(--display); min-width: 0; }
-.row i { font: 700 1.05rem/1.2 var(--display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.row i { font: 700 1.05rem/1.2 var(--num); font-style: normal; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .row small { grid-column: 1 / -1; color: var(--muted); font-size: .84rem; }
-.row[aria-current=page] small { color: inherit; opacity: .8; }
+.row[aria-current=page] small { color: var(--tip-muted); }
 .row.inr b::after { content: "●"; font-size: .62em; vertical-align: 3px; margin-left: 6px; color: var(--ok); }
 .nomatch { color: var(--muted); padding: 8px; }
 
@@ -103,7 +116,7 @@ main { min-width: 0; display: grid; gap: 14px; }
 .back { display: none; font-weight: 600; text-decoration: none; }
 .dhead { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 14px; }
 .dhead h1 { font-size: 2.5rem; line-height: 1.05; }
-.dhead .range { font: 700 2.1rem/1.1 var(--display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dhead .range { font: 700 2.1rem/1.1 var(--num); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .dhead .sub { grid-column: 1 / -1; color: var(--muted); }
 .tag { display: inline-block; font: 600 .74rem/1.5 var(--body); letter-spacing: .04em; text-transform: uppercase; padding: 0 6px; border-radius: 4px; vertical-align: middle; margin-left: 4px; }
 .tag.new { background: var(--accent-soft); color: var(--accent); }
@@ -115,7 +128,7 @@ main { min-width: 0; display: grid; gap: 14px; }
 .tabs a { padding: 6px 14px; margin-bottom: -2px; font: 600 1.2rem/1.2 var(--display); color: var(--muted); text-decoration: none; border-bottom: 2px solid transparent; white-space: nowrap; }
 .tabs a[aria-current=page] { color: var(--fg); border-bottom-color: var(--fg); }
 .tabs a small { font: 400 .88rem/1 var(--body); font-variant-numeric: tabular-nums; margin-left: 3px; }
-.note { margin: 0; color: var(--muted); max-width: 72ch; }
+.note { margin: 0; color: var(--muted); font-size: .92rem; max-width: 60ch; }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 
 /* Quests */
@@ -128,8 +141,9 @@ main { min-width: 0; display: grid; gap: 14px; }
 .fh.b { background: var(--raise); color: var(--muted); }
 .quests { list-style: none; margin: 0; padding: 0; }
 .quests li { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); gap: 10px; padding: 8px 14px; border-top: 1px solid var(--line); align-items: baseline; }
-.quests li.later, .tip.later { opacity: .5; }
-.min { font: 700 1.1rem/1.2 var(--display); font-variant-numeric: tabular-nums; text-align: right; }
+.quests li.later { opacity: .5; }
+.tip.later .ireq { color: var(--tip-bad); }
+.min { font: 700 1.1rem/1.2 var(--num); font-variant-numeric: tabular-nums; text-align: right; }
 .min.unk { color: var(--muted); }
 .qn { font-weight: 600; }
 .qs { color: var(--muted); font-size: .92rem; }
@@ -144,11 +158,13 @@ main { min-width: 0; display: grid; gap: 14px; }
 .lootbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
 .lootbar .sum { color: var(--muted); }
 .boss { display: grid; gap: 8px; }
-.boss h3 { font-size: 1.35rem; line-height: 1.15; display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; }
-.boss h3 .n { font-variant-numeric: tabular-nums; color: var(--muted); }
+.boss + .boss { margin-top: 12px; }
+.boss h3 { font-size: 1.35rem; line-height: 1.15; display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+.boss h3 .n { font-family: var(--num); font-size: .85em; font-variant-numeric: tabular-nums; color: var(--accent); }
 .boss h3 small { font: 400 .92rem/1.2 var(--body); color: var(--muted); }
-.tips { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 8px; align-items: start; }
-.tip { background: var(--tip-bg); color: var(--tip-fg); border: 1px solid var(--tip-line); border-radius: 5px; padding: 8px 11px; font-size: .92rem; line-height: 1.32; min-width: 0; box-shadow: inset 0 0 0 1px #00000066; }
+.tips { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 8px; align-items: stretch; }
+.tip { background: var(--tip-bg); color: var(--tip-fg); border: 1px solid var(--tip-edge); border-radius: 3px; padding: 9px 12px; font-size: .92rem; line-height: 1.32; min-width: 0; box-shadow: inset 0 0 0 1px var(--tip-bg), inset 0 0 0 2px var(--tip-bevel), 0 1px 2px #0003; }
+.ieff { color: var(--tip-eff); }
 .iname { display: block; color: var(--tip-rare); font-size: 1.04rem; font-weight: 700; line-height: 1.22; text-decoration: none; }
 a.iname:hover { text-decoration: underline; }
 a.iname:focus-visible { outline-color: var(--tip-rare); }
@@ -275,9 +291,13 @@ function itemCard(it, L){
     : '<span class="iname">'+esc(it.name)+'</span>';
   var bind = it.bind==="BoP" ? '<div class="ibind">Binds when picked up</div>' : it.bind==="BoE" ? '<div class="ibind boe">Binds when equipped</div>' : '';
   var slot = (it.slot||it.type) ? '<div class="islot"><span>'+esc(it.slot||"")+'</span><span>'+esc(it.type||"")+'</span></div>' : '';
+  /* Proc and equip text reads green, as it does in game. Base stats stay white. */
+  var st=it.stats||"", cut=st.search(/\b(Chance on hit|Equip|Use)\b/i);
+  var base=(cut<0?st:st.slice(0,cut)).replace(/[,;\s]+$/,""), eff=cut<0?"":st.slice(cut);
   return '<article class="tip'+(later?' later':'')+'">'+name+bind+slot+
-    (it.stats?'<div>'+esc(it.stats)+'</div>':'')+
-    (it.req?'<div>Requires Level '+Number(it.req)+'</div>':'')+
+    (base?'<div>'+esc(base)+'</div>':'')+
+    (eff?'<div class="ieff">'+esc(eff)+'</div>':'')+
+    (it.req?'<div class="ireq">Requires Level '+Number(it.req)+'</div>':'')+
     (it.trash&&it.from?'<div class="imuted">From '+esc(it.from)+'</div>':'')+
     (it.chance?'<div class="imuted">'+esc(it.chance)+' drop chance</div>':'')+
     '</article>';
@@ -431,12 +451,19 @@ function renderResults(){
     if(s&&(hasI(i,s)||i.d.n.toLowerCase().indexOf(s)>=0)===false) return false;
     return true;
   }).sort(function(a,b){ return (a.req||a.d.lo)-(b.req||b.d.lo)||a.name.localeCompare(b.name); });
+  /* An item shared by several bosses in one dungeon shows once. */
+  var seen={};
+  r=r.filter(function(i){
+    var k=i.d.n+"|"+i.name;
+    if(seen[k]){ seen[k].many=1; return false; }
+    seen[k]=i; i.many=0; return true;
+  });
   if(!r.length){ box.innerHTML='<div class="empty">No items match. Remove a filter to see more.</div>'; return; }
   var rows=r.slice(0,finder.limit).map(function(i){
     return '<tr><td><a class="it" href="#'+i.d.slug+'-loot">'+esc(i.name)+'</a>'+(i.stats?'<small>'+esc(i.stats)+'</small>':'')+'</td>'+
       '<td>'+esc(i.slot||"")+'<small>'+esc(i.type||"")+'</small></td>'+
       '<td class="num">'+(i.req||"")+'</td><td>'+esc(i.bind||"")+'</td>'+
-      '<td><a class="dg" href="#'+i.d.slug+'-loot">'+esc(i.d.n)+'</a><small>'+esc(i.boss)+'</small></td></tr>';
+      '<td><a class="dg" href="#'+i.d.slug+'-loot">'+esc(i.d.n)+'</a><small>'+esc(i.many?"Several bosses":i.boss)+'</small></td></tr>';
   }).join('');
   box.innerHTML='<div class="frows"><table><thead><tr><th>'+plural(r.length,"item")+'</th><th>Slot</th><th class="num">Req</th><th>Bind</th><th>Where</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
     (r.length>finder.limit?'<div class="more"><button type="button" id="fmore">Show more</button></div>':'');
