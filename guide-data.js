@@ -42,7 +42,7 @@ var D = [
   [14,"The Defias Brotherhood","Gryan Stoutmantle","Sentinel Hill, Westfall"],
   [15,"Oh Brother…","Wilder Thistlenettle","Dwarven District, Stormwind"],
   [15,"Underground Assault","Shoni the Shilent (chain starts with Gnoarn, Tinker Town, Ironforge)","Dwarven District, Stormwind"],
-  [15,"Red Silk Bandanas","Scout Riell","Sentinel Hill, Westfall"],
+  [14,"Red Silk Bandanas","Scout Riell","Sentinel Hill, Westfall"],
   [16,"The Unsent Letter","An Unsent Letter, dropped by Edwin VanCleef","inside the dungeon"]]},
  {n:"Shadowfang Keep",lo:20,hi:30,at:"Silverpine Forest",h:[
   [16,"The Book of Ur","Keeper Bel'dugur","The Apothecarium, Undercity"],
@@ -55,13 +55,13 @@ var D = [
   [20,"The Orb of Soran'ruk","Doan Karhan","The Barrens","Warlock"]]},
  {n:"Blackfathom Deeps",lo:24,hi:32,at:"Ashenvale",h:[
   [17,"Allegiance to the Old Gods","Je'neu Sancrea","Zoram'gar Outpost, Ashenvale"],
-  [18,"The Essence of Aku'mai","Je'neu Sancrea","Zoram'gar Outpost, Ashenvale"],
+  [17,"The Essence of Aku'mai","Je'neu Sancrea","Zoram'gar Outpost, Ashenvale"],
   [21,"Amongst the Ruins","Je'neu Sancrea","Zoram'gar Outpost, Ashenvale"],
   [21,"Baron Aquanis","Strange Water Globe, dropped by Baron Aquanis","inside the dungeon"]],
   a:[
   [18,"Knowledge in the Deeps","Gerrig Bonegrip","The Forlorn Caverns, Ironforge"],
   [18,"Researching the Corruption","Gershala Nightwhisper","Auberdine, Darkshore"],
-  [20,"In Search of Thaelrid","Dawnwatcher Shaedlass","Craftsmen's Terrace, Darnassus"],
+  [18,"In Search of Thaelrid","Dawnwatcher Shaedlass","Craftsmen's Terrace, Darnassus"],
   [20,"Twilight Falls","Argent Guard Manados","Craftsmen's Terrace, Darnassus"],
   [20,"The Test of Righteousness","Jordan Stilwell","Ironforge","Paladin"]],
   b:[
@@ -73,7 +73,7 @@ var D = [
   [22,"Crime and Punishment","Councilman Millstipe","Darkshire, Duskwood"],
   [22,"Quell The Uprising","Warden Thelwater","outside the dungeon, Stormwind"],
   [22,"The Color of Blood","Nikova Raskol","Old Town, Stormwind"],
-  [25,"The Fury Runs Deep","Motley Garmason","Dun Modr, Wetlands. Needs The Dark Iron War first"]]},
+  [22,"The Fury Runs Deep","Motley Garmason","Dun Modr, Wetlands. Needs The Dark Iron War first"]]},
  {n:"Excavation Site: Wetlands",lo:26,hi:33,prev:"24–29",isNew:1,at:"Wetlands",
   note:"Horde chains: Dragonmaw Rumors leads to Open the Maw, and Elder Knowledge leads to Earthen Echo. Alliance chains: Seeking Caitlin, Lost in the Thicket Things, Heartwoven. Songblade Search leads to Fallen in the Fen. Lost Relic Carry leads to Prehistoric Prism. Elder Knowledge and Highland Hides were bugged in the beta.",h:[
   [24,"Changing Tastes","Borstan","The Drag, Orgrimmar"],
@@ -125,7 +125,7 @@ var D = [
   [22,"Willix the Importer","Willix the Importer","inside the dungeon"]]},
  {n:"Gnomeregan",lo:29,hi:38,trek:1,at:"Dun Morogh",h:[
   [25,"Rig Wars","Nogg","Valley of Honor, Orgrimmar"],
-  [25,"Chief Engineer Scooty","Sovik","Valley of Honor, Orgrimmar"],
+  [20,"Chief Engineer Scooty","Sovik","Valley of Honor, Orgrimmar"],
   [25,"Gnomer-gooooone!","Scooty","Booty Bay, Stranglethorn Vale"]],
   a:[
   [20,"Save Techbot's Brain!","Tinkmaster Overspark","Tinker Town, Ironforge"],
@@ -137,11 +137,11 @@ var D = [
   [25,"The Grand Betrayal","High Tinker Mekkatorque","Tinker Town, Ironforge"]],
   b:[
   [20,"A Fine Mess","Kernobee","inside the dungeon"],
-  [25,"Grime-Encrusted Ring","Ring, dropped by a Dark Iron Agent","inside the dungeon"],
+  [28,"Grime-Encrusted Ring","Ring, dropped by a Dark Iron Agent","inside the dungeon"],
   [25,"The Sparklematic 5200!","The Sparklematic 5200 (repeatable)","inside the dungeon"]]},
  {n:"Scarlet Monastery",lo:30,hi:46,at:"Tirisfal Glades",wings:"Graveyard 30–38 · Library 33–41 · Armory 36–44 · Cathedral 38–46",h:[
   [25,"Vorrel's Revenge","Vorrel Sengutz","Graveyard wing"],
-  [25,"Test of Lore","Parqual Fintallas","The Apothecarium, Undercity. For the Library"],
+  [26,"Test of Lore","Parqual Fintallas","The Apothecarium, Undercity. For the Library"],
   [28,"Compendium of the Fallen","Sage Truthseeker","Thunder Bluff. For the Library. Tauren, Troll and Orc only"],
   [30,"Hearts of Zeal","Master Apothecary Faranell","The Apothecarium, Undercity. Needs Going, Going, Guano!"],
   [33,"Into The Scarlet Monastery","Varimathras","Royal Quarter, Undercity. For Library, Armory, Cathedral"]],
@@ -193,7 +193,7 @@ var D = [
   [40,"The Spider God","Master Gadrin","Sen'jin Village, Durotar"]],
   a:[
   [40,"Nekrum's Medallion","Thadius Grimshade (chain starts with Gryphon Master Talonaxe, Aerie Peak)","Nethergarde Keep, Blasted Lands"],
-  [40,"The Brassbolts Brothers","Klockmort Spannerspan","Tinker Town, Ironforge"]],
+  [28,"The Brassbolts Brothers","Klockmort Spannerspan","Tinker Town, Ironforge"]],
   b:[
   [40,"Gahz'rilla","Wizzle Brassbolts","Shimmering Flats, Thousand Needles"],
   [40,"The Prophecy of Mosh'aru","Yeh'kinya","Steamwheedle Port, Tanaris. Needs Screecher Spirits first"],
