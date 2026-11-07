@@ -73,6 +73,7 @@ input[type=number], input[type=search], select { padding: 6px 8px; border: 1px s
 .field { display: flex; align-items: center; gap: 8px; font-weight: 600; min-width: 0; }
 .top .field { color: var(--tip-fg); }
 .top input[type=number] { background: var(--tip-glass); color: var(--tip-fg); border-color: var(--tip-line); color-scheme: dark; }
+.top select { background: var(--tip-bg); color: var(--tip-fg); border-color: var(--tip-line); color-scheme: dark; }
 .top input::placeholder { color: var(--tip-muted); }
 .top :focus-visible { outline-color: var(--tip-fg); }
 #lvl { width: 4.5em; }
@@ -231,6 +232,11 @@ td small { display: block; color: var(--muted); }
         <label><input type="radio" name="fac" value="a"><span>Alliance</span></label>
       </fieldset>
       <label class="field" for="lvl">Your level <input id="lvl" type="number" min="1" max="60" inputmode="numeric" placeholder="1–60"></label>
+      <label class="field" for="cls">Your class <select id="cls">
+        <option value="">Any class</option>
+        <option>Druid</option><option>Hunter</option><option>Mage</option><option>Paladin</option><option>Priest</option>
+        <option>Rogue</option><option>Shaman</option><option>Warlock</option><option>Warrior</option>
+      </select></label>
     </div>
   </div>
 </header>
@@ -256,7 +262,7 @@ var STATUS = {
   classic: ["Classic data", "No Forever list exists yet, so this is the Classic loot table. Forever may differ."]
 };
 var $ = function(id){ return document.getElementById(id); };
-var shell = $("shell"), main = $("main"), dlist = $("dlist"), lvlIn = $("lvl"), qIn = $("q"), only = $("only");
+var shell = $("shell"), main = $("main"), dlist = $("dlist"), lvlIn = $("lvl"), qIn = $("q"), only = $("only"), clsIn = $("cls");
 var facIns = document.querySelectorAll("input[name=fac]");
 var bindF = "all", route = {}, finder = { q:"", slot:"", type:"", bind:"all", fit:false, limit:150 };
 
@@ -270,6 +276,36 @@ function allQuests(d, fac){ var r=[]; shownF(fac).forEach(function(f){ r=r.conca
 function hasQ(x, s){ return (x[1]+" "+x[6]).toLowerCase().indexOf(s)>=0; }
 function hasI(it, s){ return [it.name,it.slot,it.type,it.stats,it.boss].join(" ").toLowerCase().indexOf(s)>=0; }
 function plural(n, w){ return n+" "+w+(n===1?"":"s"); }
+
+/* What each class can use in Forever. Differs from Classic: Rogues get 1H Axes and Druids get Polearms. */
+var ARMOR = {
+  Leather: ["Druid","Hunter","Paladin","Rogue","Shaman","Warrior"],
+  Mail: ["Hunter","Paladin","Shaman","Warrior"],
+  Plate: ["Paladin","Warrior"]
+};
+var WEAPONS = {
+  Druid: ["1H Mace","2H Mace","Dagger","Fist Weapon","Polearm","Staff","Idol"],
+  Hunter: ["1H Axe","2H Axe","1H Sword","2H Sword","Dagger","Fist Weapon","Polearm","Staff","Bow","Crossbow","Gun","Thrown"],
+  Mage: ["1H Sword","Dagger","Staff","Wand"],
+  Paladin: ["1H Axe","2H Axe","1H Mace","2H Mace","1H Sword","2H Sword","Polearm","Shield","Libram"],
+  Priest: ["1H Mace","Dagger","Staff","Wand"],
+  Rogue: ["1H Axe","1H Mace","1H Sword","Dagger","Fist Weapon","Bow","Crossbow","Gun","Thrown"],
+  Shaman: ["1H Axe","2H Axe","1H Mace","2H Mace","Dagger","Fist Weapon","Staff","Shield","Totem"],
+  Warlock: ["1H Sword","Dagger","Staff","Wand"],
+  Warrior: ["1H Axe","2H Axe","1H Mace","2H Mace","1H Sword","2H Sword","Dagger","Fist Weapon","Polearm","Staff","Bow","Crossbow","Gun","Thrown","Shield"]
+};
+var WEAPON_KEYS = {}; Object.keys(WEAPONS).forEach(function(c){ WEAPONS[c].forEach(function(w){ WEAPON_KEYS[w]=1; }); });
+var LATE_ARMOR = { Hunter:"Hunters learn Mail", Shaman:"Shamans learn Mail", Paladin:"Paladins learn Plate", Warrior:"Warriors learn Plate" };
+function usable(it, c){
+  if(!c) return true;
+  if(it.cls) return it.cls.indexOf(c)>=0;
+  if(ARMOR[it.type]) return ARMOR[it.type].indexOf(c)>=0;
+  var key = /^(Axe|Mace|Sword)$/.test(it.type) ? (it.slot==="Two-Hand"?"2H ":"1H ")+it.type : it.type;
+  if(!WEAPON_KEYS[key]) return true; /* cloth, cloaks, jewelry and held off-hands */
+  if(WEAPONS[c].indexOf(key)<0) return false;
+  return !(it.slot==="Off Hand" && it.type!=="Shield" && ["Hunter","Rogue","Shaman","Warrior"].indexOf(c)<0);
+}
+function dItems(d){ var c=clsIn.value; return d.items.filter(function(i){ return usable(i,c); }); }
 
 /* Flatten loot once, so counts and the finder share one list. */
 var ITEMS = [];
@@ -297,6 +333,7 @@ function itemCard(it, L){
   return '<article class="tip'+(later?' later':'')+'">'+name+bind+slot+
     (base?'<div>'+esc(base)+'</div>':'')+
     (eff?'<div class="ieff">'+esc(eff)+'</div>':'')+
+    (it.cls?'<div>Classes: '+esc(it.cls.join(", "))+'</div>':'')+
     (it.req?'<div class="ireq">Requires Level '+Number(it.req)+'</div>':'')+
     (it.trash&&it.from?'<div class="imuted">From '+esc(it.from)+'</div>':'')+
     (it.chance?'<div class="imuted">'+esc(it.chance)+' drop chance</div>':'')+
@@ -332,7 +369,7 @@ function renderList(){
     g.forEach(function(d){
       var cur=route.d===d, inr=L&&d.lo<=L&&L<=d.hi;
       html+='<a class="row'+(inr?' inr':'')+'" href="#'+d.slug+(route.tab==="loot"?'-loot':'')+'"'+(cur?' aria-current="page"':'')+'><b>'+esc(d.n)+'</b><i>'+d.lo+'–'+d.hi+'</i>'+
-        '<small>'+plural(allQuests(d,fac).length,"quest")+' · '+plural(d.items.length,"blue")+(d.isNew?' · New':'')+'</small></a>';
+        '<small>'+plural(allQuests(d,fac).length,"quest")+' · '+plural(dItems(d).length,"blue")+(d.isNew?' · New':'')+'</small></a>';
     });
   });
   dlist.innerHTML=html||'<p class="nomatch">No dungeons match. Clear the search or untick the range filter.</p>';
@@ -365,16 +402,18 @@ function lootTab(d, L, s){
   if(!l) return '<div class="panel empty"><h3>Loot is still being researched</h3>This dungeon\'s blue drops haven\'t been added yet.</div>';
   if(l.status==="none-found"||(!d.items.length)) return '<div class="panel empty"><h3>No reliable loot list yet</h3>'+esc(l.note||"No source lists this dungeon's blue drops yet.")+sources(l)+'</div>';
   var nameHit = s && d.n.toLowerCase().indexOf(s)>=0;
-  function keep(it){ return (bindF==="all"||it.bind===bindF)&&(!s||nameHit||hasI(it,s)); }
-  var bop=d.items.filter(function(i){return i.bind==="BoP";}).length, boe=d.items.filter(function(i){return i.bind==="BoE";}).length;
+  var c=clsIn.value, mine=dItems(d);
+  function keep(it){ return usable(it,c)&&(bindF==="all"||it.bind===bindF)&&(!s||nameHit||hasI(it,s)); }
+  var bop=mine.filter(function(i){return i.bind==="BoP";}).length, boe=mine.filter(function(i){return i.bind==="BoE";}).length;
   var st=STATUS[l.status]||["",""];
   var bar='<div class="lootbar"><fieldset class="seg"><legend>Bind type</legend>'+
     [["all","All"],["BoP","BoP"],["BoE","BoE"]].map(function(o){
       return '<label><input type="radio" name="bindf" value="'+o[0]+'"'+(bindF===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>';
-    }).join('')+'</fieldset><span class="sum">'+plural(d.items.length,"blue")+' · '+bop+' BoP · '+boe+' BoE</span>'+
+    }).join('')+'</fieldset><span class="sum">'+plural(mine.length,"blue")+(c?' for '+esc(c):'')+' · '+bop+' BoP · '+boe+' BoE</span>'+
     (st[0]?'<span class="tag st-'+esc(l.status)+'">'+st[0]+'</span>':'')+'</div>'+
     (l.status!=="forever"?'<p class="note">'+st[1]+'</p>':'')+
-    (l.note?'<p class="note">'+esc(l.note)+'</p>':'');
+    (l.note?'<p class="note">'+esc(l.note)+'</p>':'')+
+    (LATE_ARMOR[c]?'<p class="note">In Classic, '+LATE_ARMOR[c]+' at level 40. Forever guides don\'t confirm the level, so these items are still shown.</p>':'');
   var body="", n=0, any=false;
   (l.bosses||[]).forEach(function(b){
     n++;
@@ -405,7 +444,7 @@ function renderDungeon(){
     '<div class="sub">'+esc(d.at)+(d.prev?' · Preview levels '+esc(d.prev):'')+(d.wings?'<br>'+esc(d.wings):'')+'</div></div>'+
     '<nav class="tabs" aria-label="'+esc(d.n)+'">'+
     '<a href="#'+d.slug+'"'+(loot?'':' aria-current="page"')+'>Quests <small>'+allQuests(d,fac).length+'</small></a>'+
-    '<a href="#'+d.slug+'-loot"'+(loot?' aria-current="page"':'')+'>Blue Drops <small>'+d.items.length+'</small></a></nav>'+
+    '<a href="#'+d.slug+'-loot"'+(loot?' aria-current="page"':'')+'>Blue Drops <small>'+dItems(d).length+'</small></a></nav>'+
     (d.note&&!loot?'<p class="note">'+esc(d.note)+'</p>':'')+
     (loot?lootTab(d,L,s):questsTab(d,L,s,fac));
 }
@@ -442,8 +481,9 @@ function renderFinder(){
 function renderResults(){
   var box=$("fres"); if(!box) return;
   if(!ITEMS.length){ box.innerHTML='<div class="empty"><h3>Loot is still being researched</h3>Blue drops will appear here once they are added.</div>'; return; }
-  var s=finder.q.trim().toLowerCase(), L=level();
+  var s=finder.q.trim().toLowerCase(), L=level(), c=clsIn.value;
   var r=ITEMS.filter(function(i){
+    if(!usable(i,c)) return false;
     if(finder.slot&&i.slot!==finder.slot) return false;
     if(finder.type&&i.type!==finder.type) return false;
     if(finder.bind!=="all"&&i.bind!==finder.bind) return false;
@@ -465,7 +505,7 @@ function renderResults(){
       '<td class="num">'+(i.req||"")+'</td><td>'+esc(i.bind||"")+'</td>'+
       '<td><a class="dg" href="#'+i.d.slug+'-loot">'+esc(i.d.n)+'</a><small>'+esc(i.many?"Several bosses":i.boss)+'</small></td></tr>';
   }).join('');
-  box.innerHTML='<div class="frows"><table><thead><tr><th>'+plural(r.length,"item")+'</th><th>Slot</th><th class="num">Req</th><th>Bind</th><th>Where</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+  box.innerHTML='<div class="frows"><table><thead><tr><th>'+plural(r.length,"item")+(c?' for '+esc(c):'')+'</th><th>Slot</th><th class="num">Req</th><th>Bind</th><th>Where</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
     (r.length>finder.limit?'<div class="more"><button type="button" id="fmore">Show more</button></div>':'');
   var m=$("fmore"); if(m) m.addEventListener("click",function(){ finder.limit+=300; renderResults(); });
 }
@@ -476,6 +516,7 @@ function renderAbout(){
   '<section><h2>How reliable this is</h2><ul>'+
   '<li>Nothing here was checked in game. Quests and loot come from third-party guides, and several were written during the beta or from Classic data.</li>'+
   '<li>Every dungeon\'s Blue Drops tab says whether its list is Forever, beta or Classic data.</li>'+
+  '<li>The class filter hides what a class can\'t equip, not what suits it, so a Hunter still sees Mail with Intellect. It uses each item\'s class lock plus Forever\'s armor and weapon rules. Where Forever guides don\'t list a rule, it follows Classic.</li>'+
   '<li>Factions follow Warcraft Tavern\'s quest pages unless a dungeon\'s note says otherwise. "Both factions" means neutral quests that either side can take.</li>'+
   '<li>Quest labels are based on each quest\'s objective. Many Dungeon quests still start or end in a city, so check the line under the quest name.</li>'+
   '<li>Minimum level is the level you can accept a quest, which is lower than the quest\'s own level.</li>'+
@@ -527,14 +568,15 @@ function go(){
 function refresh(){
   renderList();
   if(route.view==="finder") renderResults(); else renderMain();
-  try{ localStorage.setItem("hdq-level",lvlIn.value); localStorage.setItem("hdq-faction",faction()); }catch(e){}
+  try{ localStorage.setItem("hdq-level",lvlIn.value); localStorage.setItem("hdq-faction",faction()); localStorage.setItem("hdq-class",clsIn.value); }catch(e){}
 }
 try{
   var savedL=localStorage.getItem("hdq-level"); if(savedL) lvlIn.value=savedL;
   var savedF=localStorage.getItem("hdq-faction");
   if(savedF) facIns.forEach(function(i){ i.checked=i.value===savedF; });
+  var savedC=localStorage.getItem("hdq-class"); if(savedC) clsIn.value=savedC;
 }catch(e){}
-lvlIn.addEventListener("input",refresh); qIn.addEventListener("input",refresh); only.addEventListener("change",refresh);
+lvlIn.addEventListener("input",refresh); qIn.addEventListener("input",refresh); only.addEventListener("change",refresh); clsIn.addEventListener("change",refresh);
 facIns.forEach(function(i){ i.addEventListener("change",refresh); });
 window.addEventListener("hashchange",go);
 go();
