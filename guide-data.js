@@ -141,7 +141,16 @@ var D = [
   [25,"The Sparklematic 5200!","The Sparklematic 5200 (repeatable)","inside the dungeon"]]},
  {n:"Scarlet Monastery",lo:30,hi:46,at:"Tirisfal Glades",wings:"Graveyard 30–38 · Library 33–41 · Armory 36–44 · Cathedral 38–46",h:[
   [25,"Vorrel's Revenge","Vorrel Sengutz","Graveyard wing"],
-  [26,"Test of Lore","Parqual Fintallas","The Apothecarium, Undercity. For the Library"],
+  [25,"Test of Faith","Dorn Plainstalker","The Weathered Nook, Thousand Needles. First step of the Test of Lore chain",null,null,null,1149],
+  [25,"Test of Endurance","Dorn Plainstalker","The Weathered Nook. Group quest: Grenka's Claw at Roguefeather Den",null,null,null,1150],
+  [25,"Test of Strength","Dorn Plainstalker","The Weathered Nook. Elite: slay Rok'Alim in Thousand Needles",null,null,null,1151],
+  [26,"Test of Lore","Dorn Plainstalker","The Weathered Nook. Go to Braug near Talondeep Path, Stonetalon Mountains",null,null,null,1152],
+  [26,"Test of Lore","Braug Dimspirit","Talondeep Path, Stonetalon Mountains. Legacy of the Aspects, bottom of Dor'danil, Ashenvale",null,null,null,1154],
+  [26,"Test of Lore","Braug Dimspirit","Talondeep Path, Stonetalon Mountains. Answer his question about the book",null,null,null,6627],
+  [26,"Test of Lore","Braug Dimspirit","Talondeep Path, Stonetalon Mountains. Go to Parqual in Undercity",null,null,null,1159],
+  [26,"Test of Lore","Parqual Fintallas","The Apothecarium, Undercity. Beginnings of the Undead Threat, in the Library",null,null,null,1160],
+  [26,"Test of Lore","Parqual Fintallas","The Apothecarium, Undercity. Answer his question about the book",null,null,null,6628],
+  [26,"Final Passage","Parqual Fintallas","The Apothecarium, Undercity. Return to Dorn in Thousand Needles",null,null,null,1394],
   [28,"Compendium of the Fallen","Sage Truthseeker","Thunder Bluff. For the Library. Tauren, Troll and Orc only"],
   [30,"Hearts of Zeal","Master Apothecary Faranell","The Apothecarium, Undercity. Needs Going, Going, Guano!"],
   [33,"Into The Scarlet Monastery","Varimathras","Royal Quarter, Undercity. For Library, Armory, Cathedral"]],
@@ -350,7 +359,8 @@ var D = [
   [57,"Egg Freezing","Tinkee Steamboil","Flame Crest, Burning Steppes"],
   [57,"Egg Collection","Tinkee Steamboil","Flame Crest, Burning Steppes"]]}
 ];
-/* Quest kinds. Anything not listed here is a Dungeon quest. An empty string means the objective isn't published. */
+/* Quest kinds. Anything not listed here is a Dungeon quest. An empty string means the objective isn't published.
+   Rows that share a name carry their quest ID in x[7], and their kind is listed by that ID. */
 var IN = "Attunement, in dungeon";
 var K = {
  "Ragefire Chasm":{"Returning the Lost Satchel":"Follow-up"},
@@ -363,7 +373,7 @@ var K = {
  "City of Dalaran":{"Prison Break In":"Attunement","Key to the City":"Attunement","Dalaran Patrols":"Attunement","Blood in the Streets":"Attunement","An Alarming Request":"Attunement","Heart of Disruption":IN,"Shrewd Negotiations":"Follow-up","Friend of the Kirin Tor":"Follow-up","Stone Tokens":"Outside","Bracers of Binding":"Outside"},
  "Razorfen Kraul":{"An Unholy Alliance":"Follow-up"},
  "Gnomeregan":{"Save Techbot's Brain!":"Outside","Gnogaine":"Prequest","Chief Engineer Scooty":"Follow-up","Gnomer-gooooone!":"Follow-up"},
- "Scarlet Monastery":{"Vorrel's Revenge":"Follow-up"},
+ "Scarlet Monastery":{"Vorrel's Revenge":"Follow-up","1149":"Prequest","1150":"Prequest","1151":"Prequest","1152":"Prequest","1154":"Prequest","6627":"Prequest","1159":"Prequest","6628":"Follow-up","1394":"Follow-up"},
  "The Drowned City":{"The Vile Reef":"Prequest","The Gurubashi Legends of Old":"Prequest","Locating the Lost City":"Prequest","Enemies in the Water":"Prequest","Magics of the Drowned City":"","Take Two With Water":""},
  "Razorfen Downs":{"An Unholy Alliance":"Follow-up","A Host of Evil":"Outside"},
  "Uldaman":{"Reclaimed Treasures":"Outside","Agmond's Fate":"Outside","Solution to Doom":"Outside","Amulet of Secrets":"Prequest","The Lost Dwarves":"Prequest","The Shattered Necklace":"Follow-up"},
@@ -379,6 +389,6 @@ var K = {
 };
 D.forEach(function(d){
   var t=K[d.n]||{};
-  ["h","a","b"].forEach(function(k){ (d[k]||[]).forEach(function(x){ x[6] = x[1] in t ? t[x[1]] : "Dungeon"; }); });
+  ["h","a","b"].forEach(function(k){ (d[k]||[]).forEach(function(x){ var key = x[7] in t ? x[7] : x[1]; x[6] = key in t ? t[key] : "Dungeon"; }); });
 });
 window.D = D;
